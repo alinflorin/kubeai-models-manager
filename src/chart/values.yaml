@@ -1,0 +1,16 @@
+environment: null
+
+arch: amd64
+
+ui:
+  resources: {}
+
+
+api:
+  resources: {}
+
+ingress:
+  domain: null
+  annotations: {}
+
+serviceAccount: null

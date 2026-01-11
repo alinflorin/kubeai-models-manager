@@ -1,0 +1,25 @@
+:80 {
+  # Set the root directory for static files
+  root * /usr/share/caddy
+
+  # Enable pre-compressed file serving
+  file_server {
+    precompressed br gzip
+  }
+
+  # Handle SPA routing by rewriting all non-file requests to index.html
+  try_files {path} {path}/ /index.html
+
+  # Optional: Add headers for security
+  header {
+    # Enable HSTS
+    Strict-Transport-Security "max-age=31536000;"
+    # Prevent clickjacking
+    X-Frame-Options "DENY"
+    # Prevent content type sniffing
+    X-Content-Type-Options "nosniff"
+  }
+  
+  @envConfig file /env-config.js
+  header @envConfig Cache-Control "no-store, must-revalidate"
+}

@@ -1,0 +1,28 @@
+name: kmm-api Docker CI
+
+on:
+  push:
+    branches:
+      - main
+    paths: 
+      - src/kmm-api/**
+
+  pull_request:
+    branches:
+      - main
+    paths: 
+      - src/kmm-api/**
+
+jobs:
+  reusable-docker:
+    permissions:
+      actions: read
+      contents: read
+      packages: write
+    uses: ./.github/workflows/reusable-docker-ci.yaml
+    with:
+      project: 'kmm-api'
+      push: ${{ github.event_name == 'push' && github.ref == 'refs/heads/main' }}
+      scan: true
+      version: ${{ github.event_name == 'push' && github.ref == 'refs/heads/main' && 'latest' || github.sha }}
+    secrets: inherit
