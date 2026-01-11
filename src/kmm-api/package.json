@@ -18,6 +18,7 @@
     "typescript": "^5.9.3"
   },
   "dependencies": {
+    "@kubernetes/client-node": "^1.4.0",
     "express": "^5.2.1",
     "yup": "^1.7.1"
   }
