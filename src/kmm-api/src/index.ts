@@ -4,13 +4,13 @@ import { version } from "./version";
 import errorHandler from "./middleware/error-handler";
 import notFoundHandler from "./middleware/not-found-handler";
 import * as k8s from "@kubernetes/client-node";
+import { existsSync } from "fs";
 
 const kc = new k8s.KubeConfig();
-
-if (process.env.NODE_ENV === "production") {
-  kc.loadFromCluster();
-} else {
+if (existsSync(process.env.HOME + "/.kube/config")) {
   kc.loadFromFile(process.env.HOME + "/.kube/config");
+} else {
+  kc.loadFromCluster();
 }
 
 const coreApi = kc.makeApiClient(k8s.CoreV1Api);
@@ -25,7 +25,20 @@ app.get("/api/health", (req, res) => {
 
 app.get("/api/namespaces", async (req, res) => {
   const ns = await coreApi.listNamespace();
-  res.send(ns);
+  res.send(ns.items.map(x => x.metadata!.name));
+});
+
+app.get("/api/models", async (req, res) => {
+  let ns: string | undefined = req.query.namespace as string;
+  if (!ns) {
+    ns = "default";
+  }
+  const models = await customApi.listClusterCustomObject({
+    group: "kubeai.org",
+    plural: "models",
+    version: "v1",
+  });
+  res.send(models);
 });
 
 app.use(notFoundHandler);
