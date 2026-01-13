@@ -1,14 +1,7 @@
-function App() {
+import { Outlet } from "react-router";
 
-  return (
-    <>
-
-        
-      <p className="read-the-docs">
-        Click on the Vite and React logos to learn more
-      </p>
-    </>
-  )
+export default function App() {
+  return <div>
+    <Outlet />
+  </div>
 }
-
-export default App
