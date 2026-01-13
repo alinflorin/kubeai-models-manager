@@ -6,12 +6,30 @@ on:
       - main
     paths: 
       - src/**
+      - Dockerfile
+      - package.json
+      - package-lock.json
+      - tsconfig.json
+      - tsconfig.node.json
+      - tsconfig.app.json
+      - vite.config.ts
+      - .github/workflows/kmm-ci.yaml
+      - .github/workflows/reusable-docker-ci.yaml
 
   pull_request:
     branches:
       - main
     paths: 
       - src/**
+      - Dockerfile
+      - package.json
+      - package-lock.json
+      - tsconfig.json
+      - tsconfig.node.json
+      - tsconfig.app.json
+      - vite.config.ts
+      - .github/workflows/kmm-ci.yaml
+      - .github/workflows/reusable-docker-ci.yaml
 
 jobs:
   reusable-docker:
