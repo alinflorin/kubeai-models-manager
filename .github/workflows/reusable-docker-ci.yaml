@@ -15,6 +15,9 @@ on:
       scan:
         type: boolean
         required: true
+      path:
+        type: string
+        required: true
 
 jobs:
   docker:
@@ -47,9 +50,9 @@ jobs:
       - name: Build and cache Docker image
         uses: docker/build-push-action@v6
         with:
-          context: ./src/${{ inputs.project }}
+          context: ${{ inputs.path }}
           platforms: ${{ matrix.platform }}
-          tags: ${{ inputs.push == true && 'ghcr.io/alinflorin/' || '' }}${{ inputs.project }}-${{ matrix.platform == 'linux/amd64' && 'amd64' || 'arm64' }}:${{ inputs.version }}
+          tags: ${{ inputs.push == true && 'ghcr.io/alinflorin/' || '' }}${{ inputs.project }}:${{ inputs.version }}
           cache-from: type=gha
           cache-to: type=gha,mode=max
           build-args: VERSION=${{ inputs.version }}
