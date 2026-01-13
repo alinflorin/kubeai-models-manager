@@ -15,9 +15,6 @@ on:
       scan:
         type: boolean
         required: true
-      path:
-        type: string
-        required: true
 
 jobs:
   docker:
