@@ -6,11 +6,11 @@ import Home from "./routes/Home.tsx";
 import NotFound from "./routes/NotFound.tsx";
 import {
   FluentProvider,
-  webLightTheme,
 } from "@fluentui/react-components";
+import { kmmLightTheme } from "./config/themes.ts";
 
 createRoot(document.getElementById("root")!).render(
-  <FluentProvider theme={webLightTheme}>
+  <FluentProvider theme={kmmLightTheme}>
     <BrowserRouter>
       <Routes>
         <Route path="/" element={<App />}>

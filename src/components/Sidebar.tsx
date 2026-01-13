@@ -4,8 +4,9 @@ import {
   DrawerHeaderTitle,
   Drawer,
   Button,
+  Hamburger,
 } from "@fluentui/react-components";
-import { DismissRegular, ListBarRegular } from "@fluentui/react-icons";
+import { DismissRegular } from "@fluentui/react-icons";
 import { useState } from "react";
 import { useScreenSize } from "../hooks/useScreenSize";
 
@@ -16,22 +17,20 @@ export default function Sidebar() {
   return (
     <>
       {isMobile && (
-        <Button
+        <Hamburger
           style={{
             position: 'fixed',
             top: '0',
             left: '0'
           }}
-          appearance="subtle"
           size="large"
           aria-label="Open"
-          icon={<ListBarRegular />}
           onClick={() => setIsOpen(true)}
         />
       )}
       <Drawer
         type={isMobile ? "overlay" : "inline"}
-        separator
+        separator={true}
         open={isOpen || !isMobile}
         onOpenChange={(_, { open }) => setIsOpen(open)}
       >
