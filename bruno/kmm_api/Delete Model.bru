@@ -1,0 +1,20 @@
+meta {
+  name: Delete Model
+  type: http
+  seq: 5
+}
+
+delete {
+  url: {{baseUrl}}/api/models/my-model?namespace=kubeai
+  body: none
+  auth: inherit
+}
+
+params:query {
+  namespace: kubeai
+}
+
+settings {
+  encodeUrl: true
+  timeout: 0
+}

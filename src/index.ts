@@ -1,4 +1,4 @@
-import 'dotenv/config';
+import "dotenv/config";
 import express from "express";
 import ViteExpress from "vite-express";
 import notFoundMiddleware from "./middlewares/not-found.middleware";
@@ -51,24 +51,17 @@ app.get("/api/models", async (req, res) => {
     });
   }
 
-  const parsedModels = (models.body as any).items.map((item: any) =>
+  const parsedModels = models?.items?.map((item: any) =>
     ModelSchema.parse(item)
   );
 
-  res.send(parsedModels);
+  res.send(parsedModels || []);
 });
 
 app.post("/api/models", async (req, res) => {
   const model = ModelSchema.parse(req.body);
   const namespace = model.metadata.namespace || "default";
   const name = model.metadata.name;
-
-  if (!name) {
-    const error: ErrorDto = {
-      "metadata.name": ["Model metadata.name is required."],
-    };
-    return res.status(400).json(error);
-  }
 
   try {
     const createdModel = await customApi.createNamespacedCustomObject({
@@ -78,7 +71,7 @@ app.post("/api/models", async (req, res) => {
       version: "v1",
       body: model,
     });
-    res.status(201).json(createdModel.body);
+    res.status(201).json(createdModel);
   } catch (error: any) {
     if (error.statusCode === 409) {
       res.status(409).json({
@@ -91,6 +84,7 @@ app.post("/api/models", async (req, res) => {
     }
   }
 });
+
 app.delete("/api/models/:name", async (req, res) => {
   const modelName = req.params.name;
   const namespace = (req.query.namespace as string) || "default";
@@ -113,40 +107,6 @@ app.delete("/api/models/:name", async (req, res) => {
       console.error("Error deleting model:", error.message);
       const errorDto: ErrorDto = { "": ["Failed to delete model."] };
       res.status(500).json(errorDto);
-    }
-  }
-});
-
-app.put("/api/models/:name", async (req, res) => {
-  const modelName = req.params.name;
-  const namespace = (req.query.namespace as string) || "default";
-  const model = ModelSchema.parse(req.body);
-
-  if (modelName !== model.metadata.name) {
-    return res.status(400).send("Model name in path and body do not match.");
-  }
-  if (namespace !== (model.metadata.namespace || "default")) {
-    return res.status(400).send("Namespace in query and body do not match.");
-  }
-
-  try {
-    const updatedModel = await customApi.replaceNamespacedCustomObject({
-      group: "kubeai.org",
-      plural: "models",
-      namespace: namespace,
-      version: "v1",
-      name: modelName,
-      body: model,
-    });
-    res.status(200).json(updatedModel.body);
-  } catch (error: any) {
-    if (error.statusCode === 404) {
-      res.status(404).json({
-        "": [`Model '${modelName}' not found in namespace '${namespace}'.`],
-      } as ErrorDto);
-    } else {
-      console.error("Error updating model:", error);
-      res.status(500).json({ "": ["Failed to update model."] });
     }
   }
 });
