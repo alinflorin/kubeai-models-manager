@@ -19,7 +19,6 @@ jobs:
       packages: write
     uses: ./.github/workflows/reusable-docker-ci.yaml
     with:
-      path: './src/'
       project: ${{ matrix.project }}
       push: true
       scan: false

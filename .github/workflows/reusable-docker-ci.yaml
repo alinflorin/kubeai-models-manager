@@ -50,7 +50,7 @@ jobs:
       - name: Build and cache Docker image
         uses: docker/build-push-action@v6
         with:
-          context: ${{ inputs.path }}
+          context: "."
           platforms: ${{ matrix.platform }}
           tags: ${{ inputs.push == true && 'ghcr.io/alinflorin/' || '' }}${{ inputs.project }}:${{ inputs.version }}
           cache-from: type=gha

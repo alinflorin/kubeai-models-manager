@@ -22,7 +22,6 @@ jobs:
     uses: ./.github/workflows/reusable-docker-ci.yaml
     with:
       project: 'kmm'
-      path: './src/'
       push: ${{ github.event_name == 'push' && github.ref == 'refs/heads/main' }}
       scan: true
       version: ${{ github.event_name == 'push' && github.ref == 'refs/heads/main' && 'latest' || github.sha }}
