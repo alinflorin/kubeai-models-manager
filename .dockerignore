@@ -1,4 +1,5 @@
 chart/
+bruno/
 .git/
 Dockerfile
 .dockerignore
