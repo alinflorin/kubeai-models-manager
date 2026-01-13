@@ -1,0 +1,29 @@
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: {{ include "kmm.fullname" . }}
+  labels:
+    {{- include "kmm.labels" . | nindent 4 }}
+rules:
+  # kubeai.org Model CRD – full management
+  - apiGroups: ["kubeai.org"]
+    resources:
+      - models
+      - models/status
+      - models/finalizers
+    verbs:
+      - get
+      - list
+      - watch
+      - create
+      - update
+      - patch
+      - delete
+
+  # Core namespaces – read-only
+  - apiGroups: [""]
+    resources: ["namespaces"]
+    verbs:
+      - get
+      - list
+      - watch
