@@ -5,7 +5,7 @@ on:
     branches:
       - main
     paths: 
-      - src/chart/**
+      - chart/**
       - .github/workflows/chart-ci.yaml
       - .github/workflows/reusable-helm-ci.yaml
 
@@ -14,7 +14,7 @@ on:
     branches:
       - main
     paths: 
-      - src/chart/**
+      - chart/**
       - .github/workflows/chart-ci.yaml
       - .github/workflows/reusable-helm-ci.yaml
       
