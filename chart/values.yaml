@@ -80,7 +80,7 @@ publicIngress:
   hosts:
     - host: chart-example.local
       paths:
-        - path: /
+        - path: /public
           pathType: ImplementationSpecific
   tls: []
   #  - secretName: chart-example-tls
