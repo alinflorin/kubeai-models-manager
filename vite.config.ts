@@ -6,6 +6,7 @@ export default defineConfig({
   plugins: [react()],
   root: "./src",
   build: {
-    outDir: "../dist/ui"
+    outDir: "../dist/ui",
+    emptyOutDir: true
   }
 })
