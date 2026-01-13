@@ -1,5 +1,5 @@
 import express from "express";
-import ViteExpress from 'vite-express';
+import ViteExpress from "vite-express";
 import notFoundMiddleware from "./middlewares/not-found.middleware";
 import errorHandlerMiddleware from "./middlewares/error-handler.middleware";
 import type { HealthCheckResponseDto } from "./models/health-check-response.dto";
@@ -11,7 +11,6 @@ import { existsSync } from "fs";
 const app = express();
 app.use(express.json());
 
-
 const kc = new k8s.KubeConfig();
 if (existsSync(process.env.HOME + "/.kube/config")) {
   kc.loadFromFile(process.env.HOME + "/.kube/config");
@@ -21,7 +20,6 @@ if (existsSync(process.env.HOME + "/.kube/config")) {
 
 const coreApi = kc.makeApiClient(k8s.CoreV1Api);
 const customApi = kc.makeApiClient(k8s.CustomObjectsApi);
-
 
 app.get("/api/health", (_, res) => {
   res.json({
@@ -79,16 +77,12 @@ app.post("/api/models", async (req, res) => {
       version: "v1",
       body: model,
     });
-    // Kubernetes API returns the created object, which might have additional fields.
-    // We can parse it again with our schema to ensure consistency if needed,
-    // but for now, returning the body as is should be fine.
-    // const parsedCreatedModel = ModelSchema.parse(createdModel.body);
     res.status(201).json(createdModel.body);
   } catch (error: any) {
     if (error.statusCode === 409) {
       res.status(409).json({
         "": [`Model '${name}' already exists in namespace '${namespace}'.`],
-      });
+      } as ErrorDto);
     } else {
       console.error("Error creating model:", error.message);
       const errorDto: ErrorDto = { "": ["Failed to create model."] };
@@ -108,13 +102,12 @@ app.delete("/api/models/:name", async (req, res) => {
       version: "v1",
       name: modelName,
     });
-    res.status(204).send(); // No Content
+    res.status(204).send();
   } catch (error: any) {
-    // Catch any error during the delete operation
     if (error.statusCode === 404) {
       res.status(404).json({
         "": [`Model '${modelName}' not found in namespace '${namespace}'.`],
-      });
+      } as ErrorDto);
     } else {
       console.error("Error deleting model:", error.message);
       const errorDto: ErrorDto = { "": ["Failed to delete model."] };
@@ -149,7 +142,7 @@ app.put("/api/models/:name", async (req, res) => {
     if (error.statusCode === 404) {
       res.status(404).json({
         "": [`Model '${modelName}' not found in namespace '${namespace}'.`],
-      });
+      } as ErrorDto);
     } else {
       console.error("Error updating model:", error);
       res.status(500).json({ "": ["Failed to update model."] });
@@ -158,8 +151,6 @@ app.put("/api/models/:name", async (req, res) => {
 });
 
 app.get("/public/api/openrouter/models", async (_, res) => {
-  // For OpenRouter, we need to list all models available on the platform.
-  // This means fetching models across all namespaces.
   let models: any;
   try {
     models = await customApi.listCustomObjectForAllNamespaces({
@@ -176,26 +167,28 @@ app.get("/public/api/openrouter/models", async (_, res) => {
     ModelSchema.parse(item)
   );
 
-  // Transform KMM models into OpenRouter's expected format
   const openRouterModels = parsedModels.map((model: Model) => {
     const id = `${model.metadata.namespace}/${model.metadata.name}`;
-    const name = model.metadata.annotations?.["openrouter.ai/name"] || model.metadata.name;
-    const description = model.metadata.annotations?.["openrouter.ai/description"] || `Model ${model.metadata.name} powered by ${model.spec.engine}`;
-    const created = model.metadata.creationTimestamp ? Math.floor(new Date(model.metadata.creationTimestamp).getTime() / 1000) : Math.floor(Date.now() / 1000); // Unix timestamp
+    const name =
+      model.metadata.annotations?.["openrouter.ai/name"] || model.metadata.name;
+    const description =
+      model.metadata.annotations?.["openrouter.ai/description"] ||
+      `Model ${model.metadata.name} powered by ${model.spec.engine}`;
+    const created = model.metadata.creationTimestamp
+      ? Math.floor(new Date(model.metadata.creationTimestamp).getTime() / 1000)
+      : Math.floor(Date.now() / 1000);
 
-    // Default pricing (can be customized via annotations if needed)
     const defaultPricing = {
-      prompt: "0.000001", // Example default, adjust as necessary
-      completion: "0.000002", // Example default, adjust as necessary
+      prompt: "0.000001",
+      completion: "0.000002",
       image: "0",
       request: "0",
       input_cache_read: "0",
       input_cache_write: "0",
     };
 
-    // Input/Output modalities based on features
-    const inputModalities: string[] = ["text"]; // Default
-    const outputModalities: string[] = ["text"]; // Default
+    const inputModalities: string[] = ["text"];
+    const outputModalities: string[] = ["text"];
 
     if (model.spec.features?.includes("SpeechToText")) {
       inputModalities.push("audio");
@@ -206,7 +199,7 @@ app.get("/public/api/openrouter/models", async (_, res) => {
       name: name,
       description: description,
       created: created,
-      updated: created, // Assuming updated is same as created if not explicitly available
+      updated: created,
       pricing: {
         model: {
           unit: "USD",
@@ -235,10 +228,10 @@ app.get("/public/api/openrouter/models", async (_, res) => {
         //   output: "0",
         // },
       },
-      context_window: 8192, // Example default, can be customized via annotations
-      max_tokens: 4096, // Example default, can be customized via annotations
+      context_window: 8192,
+      max_tokens: 4096,
       top_provider: {
-        id: model.spec.engine.toLowerCase(), // Use engine as provider ID
+        id: model.spec.engine.toLowerCase(),
         name: model.spec.engine,
       },
       architecture: {
@@ -247,14 +240,15 @@ app.get("/public/api/openrouter/models", async (_, res) => {
           output: outputModalities,
         },
         tokenizer: {
-          // Can be customized via annotations
           // e.g., "openrouter.ai/tokenizer": "cl100k_base"
         },
       },
-      per_request_limits: null, // Or specific limits if available
-      developer_url: model.metadata.annotations?.["openrouter.ai/developer_url"],
+      per_request_limits: null,
+      developer_url:
+        model.metadata.annotations?.["openrouter.ai/developer_url"],
       homepage_url: model.metadata.annotations?.["openrouter.ai/homepage_url"],
-      model_card_url: model.metadata.annotations?.["openrouter.ai/model_card_url"],
+      model_card_url:
+        model.metadata.annotations?.["openrouter.ai/model_card_url"],
     };
   });
 
@@ -264,6 +258,6 @@ app.get("/public/api/openrouter/models", async (_, res) => {
 app.use(notFoundMiddleware);
 app.use(errorHandlerMiddleware);
 
-
 ViteExpress.listen(app, 3000, () =>
-  console.log("Server is listening on port 3000..."));
+  console.log("Server is listening on port 3000...")
+);
