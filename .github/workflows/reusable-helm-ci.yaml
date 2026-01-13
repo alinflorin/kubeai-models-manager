@@ -39,27 +39,27 @@ jobs:
       - name: Lint Helm chart
         run: |
           echo "Linting Helm chart..."
-          helm lint ./src/chart
+          helm lint ./chart
 
       - name: Template Helm chart
         run: |
           echo "Rendering Helm chart templates..."
-          helm template ./src/chart
+          helm template ./chart
 
       - name: Package Helm chart
         if: ${{ inputs.push == false }}
         run: |
           echo "Packaging Helm chart..."
-          helm package ./src/chart --destination ./src/chart/dist
+          helm package ./chart --destination ./chart/dist
 
       - name: Package Helm chart with version
         if: ${{ inputs.push == true }}
-        run: helm package src/chart --destination src/chart/dist --version ${{ inputs.version }} --app-version ${{ inputs.version }} 
+        run: helm package chart --destination chart/dist --version ${{ inputs.version }} --app-version ${{ inputs.version }} 
 
       - name: List packaged chart
         run: |
           echo "Packaged chart(s):"
-          ls -l ./src/chart/dist
+          ls -l ./chart/dist
 
       - name: Log in to GHCR
         uses: docker/login-action@v3
@@ -71,4 +71,4 @@ jobs:
 
       - name: Push Helm chart to GHCR
         if: ${{ inputs.push == true }}
-        run: helm push src/chart/dist/*.tgz oci://$GHCR_ORG/charts
+        run: helm push chart/dist/*.tgz oci://$GHCR_ORG/charts
