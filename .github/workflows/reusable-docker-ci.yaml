@@ -18,11 +18,7 @@ on:
 
 jobs:
   docker:
-    strategy:
-      matrix:
-        platform: ['linux/amd64']
-
-    runs-on: ${{ matrix.platform == 'linux/amd64' && 'ubuntu-latest' || 'ubuntu-24.04-arm' }}
+    runs-on: ubuntu-latest
 
     permissions:
       actions: read
@@ -48,7 +44,7 @@ jobs:
         uses: docker/build-push-action@v6
         with:
           context: "."
-          platforms: ${{ matrix.platform }}
+          platforms: 'linux/amd64'
           tags: ${{ inputs.push == true && 'ghcr.io/alinflorin/' || '' }}${{ inputs.project }}:${{ inputs.version }}
           cache-from: type=gha
           cache-to: type=gha,mode=max
