@@ -1,0 +1,89 @@
+meta {
+  name: Update Model
+  type: http
+  seq: 7
+}
+
+put {
+  url: {{baseUrl}}/api/models/my-model?namespace=kubeai
+  body: json
+  auth: inherit
+}
+
+params:query {
+  namespace: kubeai
+}
+
+body:json {
+  {
+    "apiVersion": "kubeai.org/v1",
+    "kind": "Model",
+    "metadata": {
+      "creationTimestamp": "2026-01-13T12:55:11Z",
+      "generation": 1,
+      "managedFields": [
+        {
+          "apiVersion": "kubeai.org/v1",
+          "fieldsType": "FieldsV1",
+          "fieldsV1": {
+            "f:spec": {
+              ".": {},
+              "f:engine": {},
+              "f:features": {},
+              "f:loadBalancing": {
+                ".": {},
+                "f:prefixHash": {
+                  ".": {},
+                  "f:meanLoadFactor": {},
+                  "f:prefixCharLength": {},
+                  "f:replication": {}
+                },
+                "f:strategy": {}
+              },
+              "f:minReplicas": {},
+              "f:owner": {},
+              "f:replicas": {},
+              "f:resourceProfile": {},
+              "f:scaleDownDelaySeconds": {},
+              "f:targetRequests": {},
+              "f:url": {}
+            }
+          },
+          "manager": "node-fetch",
+          "operation": "Update",
+          "time": "2026-01-13T12:55:11Z"
+        }
+      ],
+      "name": "my-model",
+      "namespace": "kubeai",
+      "resourceVersion": "12269",
+      "uid": "ab9cbf5b-da0f-4ba7-a038-eeae6c5d5307"
+    },
+    "spec": {
+      "engine": "VLLM",
+      "features": [
+        "TextGeneration"
+      ],
+      "loadBalancing": {
+        "prefixHash": {
+          "meanLoadFactor": 125,
+          "prefixCharLength": 100,
+          "replication": 256
+        },
+        "strategy": "LeastLoad"
+      },
+      "minReplicas": 1,
+      "owner": "BEE-spoke-data",
+      "replicas": 1,
+      "resourceProfile": "cpu:2",
+      "scaleDownDelaySeconds": 30,
+      "targetRequests": 100,
+      "url": "hf://BEE-spoke-data/smol_llama-81M-tied"
+    }
+  }
+}
+
+settings {
+  encodeUrl: true
+  timeout: 0
+}

@@ -35,21 +35,13 @@ app.get("/api/namespaces", async (_, res) => {
 
 app.get("/api/models", async (req, res) => {
   const ns: string | undefined = req.query.namespace as string;
-  let models: any;
-  if (ns) {
-    models = await customApi.listNamespacedCustomObject({
-      group: "kubeai.org",
-      plural: "models",
-      namespace: ns,
-      version: "v1",
-    });
-  } else {
-    models = await customApi.listCustomObjectForAllNamespaces({
-      group: "kubeai.org",
-      plural: "models",
-      version: "v1",
-    });
-  }
+
+  const models = await customApi.listNamespacedCustomObject({
+    group: "kubeai.org",
+    plural: "models",
+    namespace: ns,
+    version: "v1",
+  });
 
   const parsedModels = models?.items?.map((item: any) =>
     ModelSchema.parse(item)
@@ -85,6 +77,54 @@ app.post("/api/models", async (req, res) => {
   }
 });
 
+app.put("/api/models/:name", async (req, res) => {
+  const modelName = req.params.name;
+  const namespace = (req.query.namespace as string) || "default";
+  const updatedModel = ModelSchema.parse(req.body);
+
+  if (updatedModel.metadata.name !== modelName) {
+    return res.status(400).json({
+      "": ["Model name in body must match model name in URL."],
+    } as ErrorDto);
+  }
+  if (updatedModel.metadata.namespace && updatedModel.metadata.namespace !== namespace) {
+    return res.status(400).json({
+      "": ["Model namespace in body must match namespace in URL or query parameter."],
+    } as ErrorDto);
+  }
+
+  delete (updatedModel as any).status;
+
+  try {
+    const patchedModel = await customApi.replaceNamespacedCustomObject(
+      {
+        group: "kubeai.org",
+        plural: "models",
+        namespace: namespace,
+        version: "v1",
+        name: modelName,
+        body: updatedModel,
+      }
+    );
+    res.status(200).json(patchedModel);
+  } catch (error: any) {
+    if (error.statusCode === 404) {
+      res.status(404).json({
+        "": [`Model '${modelName}' not found in namespace '${namespace}'.`],
+      } as ErrorDto);
+    } else if (error.statusCode === 409) {
+      res.status(409).json({
+        "": [`Model '${modelName}' in namespace '${namespace}' has been modified. Please get the latest version and try again.`],
+      } as ErrorDto);
+
+    } else {
+      console.error("Error updating model:", error.message);
+      const errorDto: ErrorDto = { "": ["Failed to update model."] };
+      res.status(500).json(errorDto);
+    }
+  }
+});
+
 app.delete("/api/models/:name", async (req, res) => {
   const modelName = req.params.name;
   const namespace = (req.query.namespace as string) || "default";
@@ -111,7 +151,7 @@ app.delete("/api/models/:name", async (req, res) => {
   }
 });
 
-app.get("/public/api/openrouter/models", async (_, res) => {
+app.get("/public/api/models", async (_, res) => {
   let models: any;
   try {
     models = await customApi.listCustomObjectForAllNamespaces({
