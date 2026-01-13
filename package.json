@@ -41,6 +41,7 @@
   "dependencies": {
     "@fluentui/react-components": "^9.72.9",
     "@kubernetes/client-node": "^1.4.0",
+    "axios": "^1.13.2",
     "dotenv": "^17.2.3",
     "express": "^5.2.1",
     "react": "^19.2.0",
