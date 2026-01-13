@@ -15,7 +15,8 @@ export default function App() {
     <div style={{
       flex: '1 1 auto',
       minHeight: '0',
-      padding: '1rem'
+      padding: '1rem',
+      overflow: 'auto'
     }}>
       <Outlet />
     </div>
