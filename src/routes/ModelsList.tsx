@@ -12,27 +12,28 @@ import {
   Title1,
   makeStyles,
   shorthands,
-} from '@fluentui/react-components';
-import { useEffect, useState } from 'react';
-import { getNamespaces } from '../services/namespaces.service';
-import { type Model, ModelSchema } from '../models/model';
-import { getModels } from '../services/models.service';
-import useToast from '../hooks/useToast';
-import { DeleteRegular, EditRegular } from '@fluentui/react-icons';
+} from "@fluentui/react-components";
+import { useCallback, useEffect, useState } from "react";
+import { getNamespaces } from "../services/namespaces.service";
+import { type Model, ModelSchema } from "../models/model";
+import { deleteModel, getModels } from "../services/models.service";
+import useToast from "../hooks/useToast";
+import { DeleteRegular, EditRegular } from "@fluentui/react-icons";
+import useConfirm from "../hooks/useConfirm";
 
 const useStyles = makeStyles({
   container: {
-    display: 'flex',
-    flexDirection: 'column',
-    ...shorthands.gap('1rem'),
+    display: "flex",
+    flexDirection: "column",
+    ...shorthands.gap("1rem"),
   },
   cards: {
-    display: 'grid',
-    gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))',
-    ...shorthands.gap('1rem'),
+    display: "grid",
+    gridTemplateColumns: "repeat(auto-fill, minmax(300px, 1fr))",
+    ...shorthands.gap("1rem"),
   },
   cardFooter: {
-    justifyContent: 'flex-end',
+    justifyContent: "flex-end",
   },
 });
 
@@ -44,6 +45,7 @@ export default function ModelsList() {
   const [isLoadingNamespaces, setIsLoadingNamespaces] = useState(false);
   const [isLoadingModels, setIsLoadingModels] = useState(false);
   const showToast = useToast();
+  const confirm = useConfirm();
 
   useEffect(() => {
     const fetchNamespaces = async () => {
@@ -52,7 +54,7 @@ export default function ModelsList() {
         const data = await getNamespaces();
         setNamespaces(data);
       } catch (err) {
-        showToast('Failed to fetch namespaces.', 'error', 'Error');
+        showToast("Failed to fetch namespaces.", "error", "Error");
         console.error(err);
       } finally {
         setIsLoadingNamespaces(false);
@@ -74,13 +76,17 @@ export default function ModelsList() {
         const validatedData = data.filter((item) => {
           const parsed = ModelSchema.safeParse(item);
           if (!parsed.success) {
-            console.warn('Invalid model data received:', item, parsed.error);
+            console.warn("Invalid model data received:", item, parsed.error);
           }
           return parsed.success;
         });
         setModels(validatedData);
       } catch (err) {
-        showToast(`Failed to fetch models for namespace "${selectedNamespace}".`, 'error', 'Error');
+        showToast(
+          `Failed to fetch models for namespace "${selectedNamespace}".`,
+          "error",
+          "Error"
+        );
         console.error(err);
       } finally {
         setIsLoadingModels(false);
@@ -90,10 +96,44 @@ export default function ModelsList() {
     fetchModels();
   }, [selectedNamespace, showToast]);
 
+  const deleteModelClicked = useCallback(
+    async (modelName: string) => {
+      const result = await confirm({
+        title: "Delete Model",
+        message: `Are you sure you want to delete the model "${modelName}"?`,
+        confirmText: "Delete",
+        cancelText: "Cancel",
+      });
+      if (!result) {
+        return;
+      }
+
+      try {
+        await deleteModel(modelName, selectedNamespace);
+        setModels((prevModels) =>
+          prevModels.filter((model) => model.metadata.name !== modelName)
+        );
+        showToast(
+          `Model "${modelName}" deleted successfully.`,
+          "success",
+          "Success"
+        );
+      } catch (err) {
+        showToast(
+          `Failed to delete model "${modelName}" for namespace "${selectedNamespace}".`,
+          "error",
+          "Error"
+        );
+        console.error(err);
+      }
+    },
+    [confirm, selectedNamespace, showToast]
+  );
+
   return (
     <div className={styles.container}>
       <Title1 as="h1">Models</Title1>
-      <Field label="Namespace" style={{ maxWidth: '300px' }}>
+      <Field label="Namespace" style={{ maxWidth: "300px" }}>
         <Dropdown
           selectedOptions={[selectedNamespace]}
           value={selectedNamespace}
@@ -125,9 +165,20 @@ export default function ModelsList() {
             <Body1>
               <strong>URL:</strong> {model.spec.url}
             </Body1>
+            <Body1>
+              <strong>Replicas:</strong> {model.status?.replicas?.all || 0}
+            </Body1>
             <CardFooter className={styles.cardFooter}>
-              <Button appearance='subtle' icon={<EditRegular />}>Edit</Button>
-              <Button appearance='subtle' icon={<DeleteRegular />}>Delete</Button>
+              <Button appearance="subtle" icon={<EditRegular />}>
+                Edit
+              </Button>
+              <Button
+                onClick={() => deleteModelClicked(model.metadata.name!)}
+                appearance="subtle"
+                icon={<DeleteRegular />}
+              >
+                Delete
+              </Button>
             </CardFooter>
           </Card>
         ))}
