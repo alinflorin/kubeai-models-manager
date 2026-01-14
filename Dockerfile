@@ -1,10 +1,9 @@
-FROM node:25-alpine as builder
+FROM node:25-alpine
 WORKDIR /app
 COPY ./package.json ./package.json
 COPY ./package-lock.json ./package-lock.json
 RUN npm ci
 COPY . .
 ENV NODE_ENV=production
-RUN npm run build
 EXPOSE 3000
-CMD "node /app/dist/index.cjs"
+CMD ["node", "/app/dist/index.cjs"]
