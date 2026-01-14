@@ -16,8 +16,8 @@ export default function useToast() {
   const show = useCallback(
     (
       message: string,
-      title: string | undefined = undefined,
-      type: ToastIntent = "info"
+      type: ToastIntent = "info",
+      title: string | undefined = undefined
     ) => {
       dispatchToast(
         <Toast>

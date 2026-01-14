@@ -11,6 +11,7 @@ import {
 import {
   DismissRegular,
   HomeRegular,
+  PanelLeftRegular,
   SettingsRegular,
 } from "@fluentui/react-icons";
 import { useState } from "react";
@@ -81,6 +82,14 @@ export default function Sidebar() {
               onClick={() => onNavigate("/")}
             >
               Home
+            </NavItem>
+
+            <NavItem
+              value="/models"
+              icon={<PanelLeftRegular />}
+              onClick={() => onNavigate("/models")}
+            >
+              Models
             </NavItem>
 
             <NavItem
