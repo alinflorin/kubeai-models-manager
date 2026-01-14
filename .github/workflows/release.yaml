@@ -10,16 +10,13 @@ env:
 jobs:
   docker:
     if: ${{ github.event.release.target_commitish == 'main' }}
-    strategy:
-      matrix:
-        project: ['kmm']
     permissions:
       actions: read
       contents: read
       packages: write
     uses: ./.github/workflows/reusable-docker-ci.yaml
     with:
-      project: ${{ matrix.project }}
+      project: kmm
       push: true
       scan: false
       version: ${{ github.ref_name }}
