@@ -5,7 +5,7 @@
 This project is a full-stack web application for managing `Model` custom resources within a Kubernetes cluster, specifically those defined by the `kubeai.org` Custom Resource Definition (CRD). It consists of a React-based web UI and a Node.js/Express backend. The application allows users to view, create, edit, and delete these `Model` resources across different namespaces.
 
 - **Frontend:** The frontend is a single-page application built with React, TypeScript, and Vite. It uses Microsoft's Fluent UI V9 for its component library, providing a modern and responsive user interface. The main entry point for the frontend is `src/index.html` then `src/main.tsx`.
-For routing - react-router v7 Declarative mode. One large route with App.tsx as a shell, then Outlet inside App. Child routes are used.
+For routing - react-router v7 Declarative mode. One large route with App.tsx as a shell, then Outlet inside App. Child routes are used. Don't use react-router-dom, use react-router.
 Don't prefer makeStyles, but rather do all styles inline.
 For forms - react-hook-form and zod for validations.
 Errors should be displayed with useToast().
