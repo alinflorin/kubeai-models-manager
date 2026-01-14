@@ -1,6 +1,7 @@
 chart/
 bruno/
 .git/
+.gemini/
 Dockerfile
 GEMINI.md
 .dockerignore

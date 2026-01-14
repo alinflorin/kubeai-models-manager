@@ -18,6 +18,7 @@ import { getNamespaces } from '../services/namespaces.service';
 import { type Model, ModelSchema } from '../models/model';
 import { getModels } from '../services/models.service';
 import useToast from '../hooks/useToast';
+import { DeleteRegular, EditRegular } from '@fluentui/react-icons';
 
 const useStyles = makeStyles({
   container: {
@@ -125,8 +126,8 @@ export default function ModelsList() {
               <strong>URL:</strong> {model.spec.url}
             </Body1>
             <CardFooter className={styles.cardFooter}>
-              <Button>Edit</Button>
-              <Button>Delete</Button>
+              <Button appearance='subtle' icon={<EditRegular />}>Edit</Button>
+              <Button appearance='subtle' icon={<DeleteRegular />}>Delete</Button>
             </CardFooter>
           </Card>
         ))}
