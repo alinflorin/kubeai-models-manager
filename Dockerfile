@@ -12,4 +12,4 @@ WORKDIR /app
 COPY --from=builder /app/dist /app/dist
 EXPOSE 3000
 ENV NODE_ENV=production
-CMD "node /app/dist/api/index.cjs"
+CMD "node /app/dist/index.cjs"

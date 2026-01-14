@@ -1,13 +1,12 @@
 import "dotenv/config";
 import express from "express";
-import ViteExpress from "vite-express";
 import notFoundMiddleware from "./middlewares/not-found.middleware";
 import errorHandlerMiddleware from "./middlewares/error-handler.middleware";
 import type { HealthCheckResponseDto } from "./models/health-check-response.dto";
 import * as k8s from "@kubernetes/client-node";
 import { type Model, ModelSchema } from "./models/model";
-import type { ErrorDto } from "./models/error.dto";
 import { existsSync } from "fs";
+import type { ErrorDto } from "./models/error.dto";
 
 const app = express();
 app.use(express.json());
@@ -19,7 +18,6 @@ if (existsSync(process.env.HOME + "/.kube/config")) {
   kc.loadFromCluster();
 }
 
-const coreApi = kc.makeApiClient(k8s.CoreV1Api);
 const customApi = kc.makeApiClient(k8s.CustomObjectsApi);
 
 app.get("/api/health", (_, res) => {
@@ -28,130 +26,7 @@ app.get("/api/health", (_, res) => {
   } as HealthCheckResponseDto);
 });
 
-app.get("/api/namespaces", async (_, res) => {
-  const ns = await coreApi.listNamespace();
-  res.send(ns.items.map((x) => x.metadata!.name));
-});
-
-app.get("/api/models", async (req, res) => {
-  const ns: string | undefined = req.query.namespace as string;
-
-  const models = await customApi.listNamespacedCustomObject({
-    group: "kubeai.org",
-    plural: "models",
-    namespace: ns,
-    version: "v1",
-  });
-
-  const parsedModels = models?.items?.map((item: any) =>
-    ModelSchema.parse(item)
-  );
-
-  res.send(parsedModels || []);
-});
-
-app.post("/api/models", async (req, res) => {
-  const model = ModelSchema.parse(req.body);
-  const namespace = model.metadata.namespace || "default";
-  const name = model.metadata.name;
-
-  try {
-    const createdModel = await customApi.createNamespacedCustomObject({
-      group: "kubeai.org",
-      plural: "models",
-      namespace: namespace,
-      version: "v1",
-      body: model,
-    });
-    res.status(201).json(createdModel);
-  } catch (error: any) {
-    if (error.statusCode === 409) {
-      res.status(409).json({
-        "": [`Model '${name}' already exists in namespace '${namespace}'.`],
-      } as ErrorDto);
-    } else {
-      console.error("Error creating model:", error.message);
-      const errorDto: ErrorDto = { "": ["Failed to create model."] };
-      res.status(500).json(errorDto);
-    }
-  }
-});
-
-app.put("/api/models/:name", async (req, res) => {
-  const modelName = req.params.name;
-  const namespace = (req.query.namespace as string) || "default";
-  const updatedModel = ModelSchema.parse(req.body);
-
-  if (updatedModel.metadata.name !== modelName) {
-    return res.status(400).json({
-      "": ["Model name in body must match model name in URL."],
-    } as ErrorDto);
-  }
-  if (updatedModel.metadata.namespace && updatedModel.metadata.namespace !== namespace) {
-    return res.status(400).json({
-      "": ["Model namespace in body must match namespace in URL or query parameter."],
-    } as ErrorDto);
-  }
-
-  delete (updatedModel as any).status;
-
-  try {
-    const patchedModel = await customApi.replaceNamespacedCustomObject(
-      {
-        group: "kubeai.org",
-        plural: "models",
-        namespace: namespace,
-        version: "v1",
-        name: modelName,
-        body: updatedModel,
-      }
-    );
-    res.status(200).json(patchedModel);
-  } catch (error: any) {
-    if (error.statusCode === 404) {
-      res.status(404).json({
-        "": [`Model '${modelName}' not found in namespace '${namespace}'.`],
-      } as ErrorDto);
-    } else if (error.statusCode === 409) {
-      res.status(409).json({
-        "": [`Model '${modelName}' in namespace '${namespace}' has been modified. Please get the latest version and try again.`],
-      } as ErrorDto);
-
-    } else {
-      console.error("Error updating model:", error.message);
-      const errorDto: ErrorDto = { "": ["Failed to update model."] };
-      res.status(500).json(errorDto);
-    }
-  }
-});
-
-app.delete("/api/models/:name", async (req, res) => {
-  const modelName = req.params.name;
-  const namespace = (req.query.namespace as string) || "default";
-
-  try {
-    await customApi.deleteNamespacedCustomObject({
-      group: "kubeai.org",
-      plural: "models",
-      namespace: namespace,
-      version: "v1",
-      name: modelName,
-    });
-    res.status(204).send();
-  } catch (error: any) {
-    if (error.statusCode === 404) {
-      res.status(404).json({
-        "": [`Model '${modelName}' not found in namespace '${namespace}'.`],
-      } as ErrorDto);
-    } else {
-      console.error("Error deleting model:", error.message);
-      const errorDto: ErrorDto = { "": ["Failed to delete model."] };
-      res.status(500).json(errorDto);
-    }
-  }
-});
-
-app.get("/public/api/models", async (_, res) => {
+app.get("/api/openrouter/models", async (_, res) => {
   let models: any;
   try {
     models = await customApi.listCustomObjectForAllNamespaces({
@@ -161,7 +36,7 @@ app.get("/public/api/models", async (_, res) => {
     });
   } catch (error: any) {
     console.error("Error fetching models for OpenRouter:", error.message);
-    return res.status(500).json({ error: "Failed to fetch models." });
+    return res.status(500).json({"": ["Failed to fetch models"]  } as ErrorDto);
   }
 
   const parsedModels = (models.body as any).items.map((item: any) =>
@@ -259,6 +134,6 @@ app.get("/public/api/models", async (_, res) => {
 app.use(notFoundMiddleware);
 app.use(errorHandlerMiddleware);
 
-ViteExpress.listen(app, 3000, () =>
+app.listen(3000, () =>
   console.log("Server is listening on port 3000...")
 );
