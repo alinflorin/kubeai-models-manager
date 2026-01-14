@@ -2,6 +2,7 @@ chart/
 bruno/
 .git/
 Dockerfile
+GEMINI.md
 .dockerignore
 .gitignore
 .gitattributes
