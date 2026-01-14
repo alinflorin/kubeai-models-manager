@@ -18,14 +18,20 @@ import { getNamespaces } from "../services/namespaces.service";
 import { type Model, ModelSchema } from "../models/model";
 import { deleteModel, getModels } from "../services/models.service";
 import useToast from "../hooks/useToast";
-import { DeleteRegular, EditRegular } from "@fluentui/react-icons";
+import { DeleteRegular, EditRegular, AddRegular } from "@fluentui/react-icons";
 import useConfirm from "../hooks/useConfirm";
+import AddEditModel from "../components/AddEditModel";
 
 const useStyles = makeStyles({
   container: {
     display: "flex",
     flexDirection: "column",
     ...shorthands.gap("1rem"),
+  },
+  header: {
+    display: "flex",
+    justifyContent: "space-between",
+    alignItems: "center",
   },
   cards: {
     display: "grid",
@@ -44,6 +50,9 @@ export default function ModelsList() {
   const [selectedNamespace, setSelectedNamespace] = useState<string>("default");
   const [isLoadingNamespaces, setIsLoadingNamespaces] = useState(false);
   const [isLoadingModels, setIsLoadingModels] = useState(false);
+  const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
+  const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
+  const [selectedModel, setSelectedModel] = useState<Model | null>(null);
   const showToast = useToast();
   const confirm = useConfirm();
 
@@ -130,9 +139,57 @@ export default function ModelsList() {
     [confirm, selectedNamespace, showToast]
   );
 
+  const handleEditClick = useCallback((model: Model) => {
+    setSelectedModel(model);
+    setIsEditDialogOpen(true);
+  }, []);
+
+  const handleAddClick = useCallback(() => {
+    setSelectedModel(null);
+    setIsAddDialogOpen(true);
+  }, []);
+
+  const handleDialogSuccess = useCallback(() => {
+    // Refresh models list
+    const fetchModels = async () => {
+      setIsLoadingModels(true);
+      try {
+        const data = await getModels(selectedNamespace);
+        const validatedData = data.filter((item) => {
+          const parsed = ModelSchema.safeParse(item);
+          if (!parsed.success) {
+            console.warn("Invalid model data received:", item, parsed.error);
+          }
+          return parsed.success;
+        });
+        setModels(validatedData);
+      } catch (err) {
+        showToast(
+          `Failed to fetch models for namespace "${selectedNamespace}".`,
+          "error",
+          "Error"
+        );
+        console.error(err);
+      } finally {
+        setIsLoadingModels(false);
+      }
+    };
+    fetchModels();
+  }, [selectedNamespace, showToast]);
+
   return (
     <div className={styles.container}>
-      <Title1 as="h1">Models</Title1>
+      <div className={styles.header}>
+        <Title1 as="h1">Models</Title1>
+        <Button
+          appearance="primary"
+          icon={<AddRegular />}
+          onClick={handleAddClick}
+          size="large"
+        >
+          Add Model
+        </Button>
+      </div>
       <Field label="Namespace" style={{ maxWidth: "300px" }}>
         <Dropdown
           selectedOptions={[selectedNamespace]}
@@ -169,7 +226,11 @@ export default function ModelsList() {
               <strong>Replicas:</strong> {model.status?.replicas?.all || 0}
             </Body1>
             <CardFooter className={styles.cardFooter}>
-              <Button appearance="subtle" icon={<EditRegular />}>
+              <Button
+                appearance="subtle"
+                icon={<EditRegular />}
+                onClick={() => handleEditClick(model)}
+              >
                 Edit
               </Button>
               <Button
@@ -183,6 +244,22 @@ export default function ModelsList() {
           </Card>
         ))}
       </div>
+
+      <AddEditModel
+        open={isAddDialogOpen}
+        onOpenChange={setIsAddDialogOpen}
+        model={null}
+        namespace={selectedNamespace}
+        onSuccess={handleDialogSuccess}
+      />
+
+      <AddEditModel
+        open={isEditDialogOpen}
+        onOpenChange={setIsEditDialogOpen}
+        model={selectedModel}
+        namespace={selectedNamespace}
+        onSuccess={handleDialogSuccess}
+      />
     </div>
   );
 }
