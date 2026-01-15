@@ -39,7 +39,7 @@ app.get("/api/openrouter/models", async (_, res) => {
     return res.status(500).json({"": ["Failed to fetch models"]  } as ErrorDto);
   }
 
-  const parsedModels = (models.body as any).items.map((item: any) =>
+  const parsedModels = models.items.map((item: any) =>
     ModelSchema.parse(item)
   );
 
