@@ -18,7 +18,6 @@ jobs:
     with:
       project: kmm
       push: true
-      scan: false
       version: ${{ github.ref_name }}
     secrets: inherit
 

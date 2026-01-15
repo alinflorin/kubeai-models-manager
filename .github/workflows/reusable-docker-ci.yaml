@@ -12,9 +12,6 @@ on:
       push:
         type: boolean
         required: true
-      scan:
-        type: boolean
-        required: true
 
 jobs:
   docker:
