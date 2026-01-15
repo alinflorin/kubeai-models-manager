@@ -44,7 +44,7 @@ app.get("/api/openrouter/models", async (_, res) => {
   );
 
   const openRouterModels = parsedModels.filter((model) => !!model.metadata.annotations?.["openrouter.ai/json"])
-    .map(x => JSON.stringify(x.metadata.annotations!["openrouter.ai/json"]));
+    .map(x => JSON.parse(x.metadata.annotations!["openrouter.ai/json"]));
 
   res.json({ data: openRouterModels });
 });
